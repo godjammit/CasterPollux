@@ -319,14 +319,8 @@ public class networkController : MonoBehaviour
 		switch (GameState) 
 		{
 		case (int)state.mainmenu:
-			if(GUILayout.Button("Join Game as Caster"))
+			if(GUILayout.Button("Join Game"))
 			{
-				playerPrefab = playerCaster;
-				GameState = (int)state.joinmenu;
-			}
-			if(GUILayout.Button("Join Game as Pollux"))
-			{
-				playerPrefab = playerPollux;
 				GameState = (int)state.joinmenu;
 			}
 			if(GUILayout.Button("Host Game"))
