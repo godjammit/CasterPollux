@@ -5,7 +5,7 @@
 	<Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
 	<ProductVersion>10.0.20506</ProductVersion>
 	<SchemaVersion>2.0</SchemaVersion>
-	<ProjectGuid>{7EF12BB6-4152-431D-284E-8FDC47264610}</ProjectGuid>
+	<ProjectGuid>{EC772299-F1FB-17DF-718B-283990063FAF}</ProjectGuid>
 	<OutputType>Library</OutputType>
 	<AppDesignerFolder>Properties</AppDesignerFolder>
 	<RootNamespace></RootNamespace>
@@ -49,16 +49,18 @@
      <Compile Include="Assets\Multiplayer\GameAssets\Scripts\gameGUI.js" />
      <Compile Include="Assets\Multiplayer\MenuAssets\Menu_GUI.js" />
      <Compile Include="Assets\Multiplayer\MenuAssets\Menu_multiplayerCode.js" />
+     <Compile Include="Assets\Scripts\1-way child collider.js" />
      <Compile Include="Assets\Scripts\PlayerController\Grabbing.js" />
      <Compile Include="Assets\Scripts\PlayerController\Movement.js" />
      <Compile Include="Assets\Scripts\PlayerController\Punching.js" />
-     <Compile Include="Assets\Scripts\pk.js" />
+     <Compile Include="Assets\Scripts\PlayerController\pk.js" />
+     <Compile Include="Assets\Scripts\spawnNetworkedGO.js" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="Assembly-CSharp-firstpass.csproj">
-      <Project>{86AEC876-94EC-E34D-7DCD-2140DA19DF98}</Project>      <Name>Assembly-CSharp-firstpass</Name>    </ProjectReference>
+      <Project>{592B1B5A-1DA2-F80C-361F-460D300AC0AF}</Project>      <Name>Assembly-CSharp-firstpass</Name>    </ProjectReference>
     <ProjectReference Include="Assembly-UnityScript-firstpass.unityproj">
-      <Project>{D40630B7-591B-F842-F27D-C73F5467CAC4}</Project>      <Name>Assembly-UnityScript-firstpass</Name>    </ProjectReference>
+      <Project>{D38D4B58-0B88-22F6-1442-14379472E025}</Project>      <Name>Assembly-UnityScript-firstpass</Name>    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

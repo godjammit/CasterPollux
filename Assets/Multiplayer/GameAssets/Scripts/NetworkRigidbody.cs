@@ -5,6 +5,8 @@ using System.Collections;
 
 public class NetworkRigidbody : MonoBehaviour {
 	
+	public bool grabbed;
+	
 	public double m_InterpolationBackTime = 0.1;
 	public double m_ExtrapolationLimit = 0.5;
 	
@@ -22,7 +24,23 @@ public class NetworkRigidbody : MonoBehaviour {
 	// Keep track of what slots are used
 	int m_TimestampCount;
 	
+	public bool isGrabbed() 
+	{
+		return grabbed; 
+	} 
+	[RPC]
+	void grab(bool grabval) 
+	{
+		grabbed = grabval;
+	} 
 	
+	[RPC]
+	void changeOwner(NetworkViewID id) 
+	{
+		networkView.enabled = false;
+		this.networkView.viewID = id; //called via networkView.RPC("changeOwner", RPCMode.AllBuffered, networkView.viewID);
+		networkView.enabled = true;
+	} 
 	
 	void OnSerializeNetworkView(BitStream stream, NetworkMessageInfo info)
 	{

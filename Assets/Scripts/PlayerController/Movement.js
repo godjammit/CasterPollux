@@ -60,7 +60,10 @@ var canJump=true;            // can the player jump? if not, he can also not dou
 var canDoubleJump=true;        // can the player jump after a jump?
 var canWallJump=true;        // can the player jump away from a wall when touching it?
 var canDash=true;        // can the player jump away from a wall when touching it?
-var dashAmount=1;
+var canSprint=true;
+private var dashcount=0;
+var dashtimer=10.0;
+private var actualdashtimer = 0;
 var jumpHeight = 1.5;         // this is the jump height by pressing it the first time.
 var doubleJumpHeight=1.0;     // this height will be added to verticalspeed one the jump button is pressed the second time.
 
@@ -102,6 +105,8 @@ private var collisionFlags : CollisionFlags;
 
 private var jumpButtonPressedTwice=0;
 
+private var movement = Vector3(0, 0, 0);
+
 function Awake ()
 {
     moveDirection = transform.TransformDirection(Vector3.forward);
@@ -111,9 +116,21 @@ function Update ()
 {
 	if (! localPlayer)
 		return;
-	
+
     // kill all inputs if not controllable
     if (!isControllable) {Input.ResetInputAxes();}
+
+	transform.position.z = 0;
+
+	//tracks if the button combo for falling through is pressed
+    //usually in video games this is down + jump
+    if(Input.GetKey(KeyCode.S)){
+         //the layer moving platforms cannot collide with
+        gameObject.layer = 8;
+    }
+    else{
+        gameObject.layer = 0; //default layer
+    }
 
     // set the jump button time variable and check for a doublejump. (=jumpButtonPressedTwice==1)
     if (Input.GetButtonDown ("Jump")) 
@@ -143,8 +160,6 @@ function Update ()
     }
     
     UpdateSmoothedMovementDirection();
-
-    ApplyGravity ();
     
     // Perform a wall jump logic
     // - Make sure we are jumping against wall etc.
@@ -155,7 +170,7 @@ function Update ()
     // Apply jumping logic
     ApplyJumping();
     
-    var movement = moveDirection * moveSpeed + Vector3 (0, verticalSpeed, 0);// + inAirVelocity;
+    movement = moveDirection * moveSpeed + Vector3 (0, verticalSpeed, 0);// + inAirVelocity;
     movement *= Time.deltaTime;
     
     // Move the controller
@@ -174,6 +189,7 @@ function Update ()
         //inAirVelocity = Vector3.zero;
         if (jumping || doubleJumping)
         {
+        	dashcount = 0;
             jumping = false;
             doubleJumping=false;
             jumpButtonPressedTwice=0;
@@ -206,17 +222,29 @@ function UpdateSmoothedMovementDirection()
     faceDirection = Vector3.Slerp(faceDirection, forward,Time.deltaTime*8);
     var targetDir=forward*vertical+right*horizontal*sidewayWalkMultiplier;
     
+    
     var dash = false;
-    if(Input.GetKeyDown(KeyCode.LeftShift))
+    if(Input.GetButton("Run") && canDash && dashcount <= 0)
 	{
 		dash = true;
+		actualdashtimer = dashtimer;
 	}
     
     var curSmooth:float;
     var targetSpeed:float;
     
-    if(canDash && dash)
+    if(dash || actualdashtimer > 0)
     {
+    	dashcount++;
+    	
+    	actualdashtimer -= Time.deltaTime;
+    	
+    	if (actualdashtimer < 0) 
+    	{
+    		actualdashtimer = 0;
+    	}
+    	
+    	
     	// We store speed and direction seperately,
         // so that when the character stands still we still have a valid forward direction
         // moveDirection is always normalized, and we only update it if there is user input.
@@ -241,20 +269,15 @@ function UpdateSmoothedMovementDirection()
         //* We want to support analog input but make sure you cant walk faster diagonally than just forward or sideways
         targetSpeed = 1.0;
     
-        // Pick speed modifier
-        if (Input.GetButton ("Run"))
-        {
-            targetSpeed *= runningSpeed;
-        }else{
-            targetSpeed *= walkingSpeed;
-        }
+        targetSpeed *= runningSpeed;
         
-        moveSpeed = Mathf.Lerp(moveSpeed, targetSpeed*10*dashAmount, curSmooth);
+        moveSpeed = Mathf.Lerp(moveSpeed, targetSpeed, curSmooth);
     }
     
     // Grounded controls
     else if (grounded)
     {
+    	dashcount = 0;
         // We store speed and direction seperately,
         // so that when the character stands still we still have a valid forward direction
         // moveDirection is always normalized, and we only update it if there is user input.
@@ -271,7 +294,7 @@ function UpdateSmoothedMovementDirection()
         targetSpeed = Mathf.Min(targetDir.magnitude, 1.0);
     
         // Pick speed modifier
-        if (Input.GetButton ("Run"))
+        if (Input.GetButton ("Run") && canSprint)
         {
             targetSpeed *= runningSpeed;
         }else{
@@ -279,6 +302,7 @@ function UpdateSmoothedMovementDirection()
         }
         
         moveSpeed = Mathf.Lerp(moveSpeed, targetSpeed, curSmooth);
+        ApplyGravity ();
     }
     else if(!canWallJump)
     {
@@ -299,7 +323,12 @@ function UpdateSmoothedMovementDirection()
         }
         
         moveSpeed = Mathf.Lerp(moveSpeed, targetSpeed*inAirControl, curSmooth);
+        ApplyGravity ();
+    } else {
+    	movement = Vector3(0, 0, 0);
+    	ApplyGravity ();
     }
+    
 }
 
 function ApplyGravity ()

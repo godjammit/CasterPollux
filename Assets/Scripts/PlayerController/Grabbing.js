@@ -36,9 +36,21 @@ function Update ()
    	if(Input.GetKeyDown("g") && holding == null)
    	{
    		holding = FindClosestGrabbableObject();
+   		if (holding != null) 
+   		{
+   			holding.networkView.RPC("grab", RPCMode.AllBuffered, true);
+   			holding.transform.parent = transform;
+   			holding.rigidbody.isKinematic = true;
+   			holding.collider.isTrigger = true;
+   			holding.networkView.RPC("changeOwner", RPCMode.AllBuffered, Network.AllocateViewID());
+   		}
    	}
    	else if(Input.GetKeyDown("g") && holding != null)
    	{
+   		holding.networkView.RPC("grab", RPCMode.AllBuffered, false);
+   		holding.transform.parent = null;
+   		holding.rigidbody.isKinematic = false;
+   		holding.collider.isTrigger = false;
    		holding = null;
    	}
 }

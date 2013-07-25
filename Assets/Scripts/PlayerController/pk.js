@@ -31,6 +31,9 @@ function Update ()
 	if (!hit.rigidbody || hit.rigidbody.isKinematic)
 		return;
 	
+	if (hit.transform.gameObject.GetComponent("NetworkRigidbody").isGrabbed())
+		return;
+	
 	if (!springJoint)
 	{
 		var go = new GameObject("Rigidbody dragger");
@@ -55,6 +58,8 @@ function Update ()
 	springJoint.damper = damper;
 	springJoint.maxDistance = distance;
 	springJoint.connectedBody = hit.rigidbody;
+	
+	hit.transform.gameObject.networkView.RPC("changeOwner", RPCMode.AllBuffered, Network.AllocateViewID());
 	
 	StartCoroutine ("DragObject", hit.distance);
 }

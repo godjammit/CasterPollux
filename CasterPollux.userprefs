@@ -1,0 +1,17 @@
+﻿<Properties>
+  <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />
+  <MonoDevelop.Ide.Workbench ActiveDocument="Assets/Scripts/spawnNetworkedGO.js">
+    <Files>
+      <File FileName="Assets/Multiplayer/GameAssets/Scripts/NetworkRigidbody.cs" Line="40" Column="31" />
+      <File FileName="Assets/Scripts/PlayerController/Movement.js" Line="123" Column="27" />
+      <File FileName="Assets/Multiplayer/MenuAssets/Menu_multiplayerCode.js" Line="1" Column="1" />
+      <File FileName="Assets/Scripts/1-way child collider.js" Line="14" Column="44" />
+      <File FileName="Assets/Scripts/PlayerController/Grabbing.js" Line="35" Column="30" />
+      <File FileName="Assets/Scripts/spawnNetworkedGO.js" Line="7" Column="3" />
+    </Files>
+  </MonoDevelop.Ide.Workbench>
+  <MonoDevelop.Ide.DebuggingService.Breakpoints>
+    <BreakpointStore />
+  </MonoDevelop.Ide.DebuggingService.Breakpoints>
+  <MonoDevelop.Ide.DebuggingService.PinnedWatches />
+</Properties>
