@@ -235,6 +235,8 @@ function UpdateSmoothedMovementDirection()
     
     if(dash || actualdashtimer > 0)
     {
+    	movement.y = 0;
+    	
     	dashcount++;
     	
     	actualdashtimer -= Time.deltaTime;
