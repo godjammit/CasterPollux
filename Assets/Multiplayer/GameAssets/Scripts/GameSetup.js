@@ -1,3 +1,6 @@
+var serverSpawn: Transform;
+var clientSpawn: Transform;
+
 var playerPref : Transform;
 var clientPref : Transform;
 var gameName : String = "C&P";
@@ -10,9 +13,10 @@ class FPSPlayerNode {
 	var networkPlayer : NetworkPlayer;
 }
 
-
-function Awake() 
+function Start() 
 {
+	Debug.Log("awake");
+
 	playerName = PlayerPrefs.GetString("playerName");
 	
 	Network.isMessageQueueRunning = true;
@@ -25,6 +29,13 @@ function Awake()
 		for (var go : GameObject in FindObjectsOfType(GameObject)){
 			go.SendMessage("OnNetworkLoadedLevel", SendMessageOptions.DontRequireReceiver);	
 		}		
+		
+		/*
+		for (var go : GameObject in FindObjectsOfType(GameObject)){
+			go.SendMessage("OnNetworkLoadedLevel", SendMessageOptions.DontRequireReceiver);	
+		}	
+		*/
+				
 		MasterServer.RegisterHost(gameName, PlayerPrefs.GetString("playerName")+"'s game");
 			
 	}else if(Network.isClient){
@@ -33,8 +44,13 @@ function Awake()
 		
 		for (var go : GameObject in FindObjectsOfType(GameObject)){
 			go.SendMessage("OnNetworkLoadedLevel", SendMessageOptions.DontRequireReceiver);	
-		}	
+		}		
 		
+		/*
+		for (var go : GameObject in FindObjectsOfType(GameObject)){
+			go.SendMessage("OnNetworkLoadedLevel", SendMessageOptions.DontRequireReceiver);	
+		}	
+		*/
 		
 		
 	}else{
@@ -81,11 +97,10 @@ function TellOurName(name : String, info : NetworkMessageInfo){
 //Called via Awake()
 function OnNetworkLoadedLevel()
 {
-	var newTrans : Transform;
 	if (Network.isClient)
-		newTrans = Network.Instantiate(clientPref, transform.position, transform.rotation, 0); 
-	if (Network.isServer)
-		newTrans = Network.Instantiate(playerPref, transform.position, transform.rotation, 0); 
+		Network.Instantiate(clientPref, clientSpawn.position, transform.rotation, 0); 
+	else
+		Network.Instantiate(playerPref, serverSpawn.position, transform.rotation, 0); 
 }
 
 

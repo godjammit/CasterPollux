@@ -17,42 +17,49 @@ function Update ()
     }
     
     var playerPos:Vector3 = transform.position;
-    
+         
+         
+         
     //Where held object will appear
     if(holding != null)
-    {
-	    if(rightFacing)
-	    {
-	    	holding.transform.position = Vector3(playerPos.x + 1, playerPos.y, playerPos.z);
-	   	}
-	   	else
-	   	{
-	   		holding.transform.position = Vector3(playerPos.x - 1, playerPos.y, playerPos.z);
-	   	}
-	   	
-	   	holding.transform.rotation = new Quaternion(0,0,0,0);
+    {  
+    	if(! holding.networkView.isMine)
+    		holding = null;
+		else {
+		    holding.transform.position = Vector3(playerPos.x, playerPos.y + (this.collider.bounds.size.y)/2 + (holding.collider.bounds.size.y)/2, playerPos.z);
+		   	holding.transform.rotation = new Quaternion(0,0,0,0);
+		}
    	}
    	//Pickup / Drop Grabbable Object
    	if(Input.GetKeyDown("g") && holding == null)
    	{
-   		holding = FindClosestGrabbableObject();
-   		if (holding != null) 
-   		{
-   			holding.networkView.RPC("grab", RPCMode.AllBuffered, true);
-   			holding.transform.parent = transform;
-   			holding.rigidbody.isKinematic = true;
-   			holding.collider.isTrigger = true;
-   			holding.networkView.RPC("changeOwner", RPCMode.AllBuffered, Network.AllocateViewID());
-   		}
+   		pickup();
    	}
    	else if(Input.GetKeyDown("g") && holding != null)
    	{
-   		holding.networkView.RPC("grab", RPCMode.AllBuffered, false);
-   		holding.transform.parent = null;
-   		holding.rigidbody.isKinematic = false;
-   		holding.collider.isTrigger = false;
-   		holding = null;
+   		drop();
    	}
+}
+
+function pickup() 
+{
+	holding = FindClosestGrabbableObject();
+	if (holding != null) 
+	{
+		holding.networkView.RPC("grab", RPCMode.AllBuffered, true);
+		holding.networkView.RPC("changeOwner", RPCMode.AllBuffered, Network.AllocateViewID());
+	}
+}
+
+
+function drop() 
+{
+	if (holding == null)
+		return;
+		
+	holding.networkView.RPC("grab", RPCMode.AllBuffered, false);
+   	
+   	holding = null;
 }
 
  // Find the name of the closest box

@@ -1,7 +1,7 @@
 
 #pragma strict
 
-public static var target : Transform;
+static var target : Transform;
 var smoothTime = 0.3;
 private var thisTransform : Transform;
 private var velocity : Vector2;
@@ -13,6 +13,8 @@ function Start()
 
 function Update() 
 {
+	if (target == null)
+		return;
 	thisTransform.position.x = Mathf.SmoothDamp( thisTransform.position.x, 
 		target.position.x, velocity.x, smoothTime);
 	thisTransform.position.y = Mathf.SmoothDamp( thisTransform.position.y, 

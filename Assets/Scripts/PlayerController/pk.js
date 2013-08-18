@@ -5,33 +5,49 @@ var angularDrag = 5.0;
 var distance = 0.2;
 var attachToCenterOfMass = false;
 
+public static var isPK : boolean = false;
+
+private var mobile : boolean = false;
+
 private var springJoint : SpringJoint;
+
+function Start () {
+	if (Application.platform == RuntimePlatform.Android || Application.platform == RuntimePlatform.IPhonePlayer) 
+		mobile = true;
+}
+
 
 function Update ()
 {
+	isPK = false;
+	
 	// Make sure the user pressed the mouse down
-	if (!Input.GetMouseButtonDown (0))
+	if (!Input.GetMouseButtonDown (0) || Input.touchCount < 0)
 		return;
 
 	var mainCamera = FindCamera();
 		
 	// We need to actually hit an object
 	var hit : RaycastHit;
-	if (!Physics.Raycast(mainCamera.ScreenPointToRay(Input.mousePosition),  hit, 100))
-		return;
-		
+	
+	if (mobile) 
+	{
+		if (!Physics.Raycast(mainCamera.ScreenPointToRay(Input.GetTouch(0).position),  hit, 100))
+			return;
+	}
+	else {
+		if (!Physics.Raycast(mainCamera.ScreenPointToRay(Input.mousePosition),  hit, 100))
+			return;
+	}
+	
 	//teleport if you're supposed to
-	if (hit.transform.gameObject.tag.Equals("Tele")) {
-		this.transform.position = hit.transform.position;
-		this.transform.position.y += 2;
+	if (hit.transform.gameObject.tag.Equals("Tele") || hit.transform.Equals(this.transform)) {
+		SmoothFollow2D.target = hit.transform;
 	}
 
 		
 	// We need to hit a rigidbody that is not kinematic
 	if (!hit.rigidbody || hit.rigidbody.isKinematic)
-		return;
-	
-	if (hit.transform.gameObject.GetComponent("NetworkRigidbody").isGrabbed())
 		return;
 	
 	if (!springJoint)
@@ -66,14 +82,17 @@ function Update ()
 
 function DragObject (distance : float)
 {
+	isPK = true;
 	var oldDrag = springJoint.connectedBody.drag;
 	var oldAngularDrag = springJoint.connectedBody.angularDrag;
 	springJoint.connectedBody.drag = drag;
 	springJoint.connectedBody.angularDrag = angularDrag;
 	var mainCamera = FindCamera();
-	while (Input.GetMouseButton (0))
+	while (Input.GetMouseButton (0) || Input.touchCount > 0)
 	{
 		var ray = mainCamera.ScreenPointToRay (Input.mousePosition);
+		if (mobile)
+			ray = mainCamera.ScreenPointToRay (Input.GetTouch(0).position);
 		springJoint.transform.position = ray.GetPoint(distance);
 		yield;
 	}

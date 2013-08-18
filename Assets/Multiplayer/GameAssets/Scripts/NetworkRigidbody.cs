@@ -5,7 +5,144 @@ using System.Collections;
 
 public class NetworkRigidbody : MonoBehaviour {
 	
-	public bool grabbed;
+	//
+	//grabbing portion
+	//
+	
+	GameObject holding = null;
+	float grabDistance = 1.0f;
+	private bool rightFacing = true;
+	private bool grabbed;
+	
+	public bool canGrabThings = false;
+	
+	public bool grabbable = true;
+	
+	NetworkViewID holdingID;
+	
+	Vector2 holdingSpace;
+	
+	void grabUpdate()
+	{
+		//Gets the latest faceing of the character
+	    if (Input.GetAxisRaw("Horizontal") < 0) 
+	    {
+			rightFacing = false;
+	    }
+	    else if (Input.GetAxisRaw("Horizontal") > 0) 
+	    {
+	    	rightFacing = true;
+	    }
+	    	         
+	    //Where held object will appear
+	    if(holding != null)
+	    {  
+	    	if(! holding.networkView.isMine)
+	    		holding = null;
+			else {
+				if (rightFacing)
+			    	holding.transform.position = new Vector3(transform.position.x + holdingSpace.x, transform.position.y + holdingSpace.y, transform.position.z);
+				else
+					holding.transform.position = new Vector3(transform.position.x - holdingSpace.x, transform.position.y + holdingSpace.y, transform.position.z);
+			   	holding.transform.rotation = new Quaternion(0,0,0,0);
+			}
+	   	}
+	   	//Pickup / Drop Grabbable Object
+	   	if(Input.GetButtonDown("Carry") && holding == null)
+	   	{
+	   		pickup();
+	   	}
+	   	else if(Input.GetButtonDown("Carry") && holding != null)
+	   	{
+	   		drop();
+	   	}
+	}
+	
+	void pickup() 
+	{
+		holding = FindClosestGrabbableObject();
+		if (holding != null) 
+		{
+			holdingID = holding.networkView.viewID;
+			
+			holdingSpace.x = holding.collider.bounds.extents.x + this.collider.bounds.extents.x;
+			holdingSpace.y = holding.collider.bounds.extents.y - this.collider.bounds.extents.y;
+			
+			holding.networkView.RPC("grab", RPCMode.AllBuffered, true);
+			holding.networkView.RPC("changeOwner", RPCMode.AllBuffered, Network.AllocateViewID());
+		}
+	}
+	
+	
+	void drop() 
+	{
+		if (holding == null)
+			return;
+		
+		holding.networkView.RPC("changeOwner", RPCMode.AllBuffered, holdingID);
+		
+		holding.networkView.RPC("grab", RPCMode.AllBuffered, false);
+	   	
+	   	holding = null;
+	}
+	
+	 // Find the name of the closest box
+	GameObject FindClosestGrabbableObject ()
+	{
+	    // Find all game objects with tag Grabbable
+	    GameObject[] gos;
+	    gos = GameObject.FindGameObjectsWithTag("Grabbable");
+	    if (gos == null)
+	    	return null; 
+	    GameObject closest = null; 
+	    var distance = Mathf.Infinity; 
+	    Vector3 position = transform.position; 
+	    
+	    // Iterate through them and find the closest one
+	    foreach (GameObject go in gos)
+	    { 
+	        var diff = (go.transform.position - position);
+	        var curDistance = diff.sqrMagnitude; 
+	        if (curDistance < distance)
+	        { 
+	            closest = go; 
+	            distance = curDistance; 
+	        } 
+	    }
+		
+	    float distanceFromPlayer = Mathf.Infinity;
+	    if(rightFacing)
+	    	distanceFromPlayer = Vector3.Distance(closest.transform.position,(transform.position + new Vector3(1,0,0)));
+	    else
+	    	distanceFromPlayer = Vector3.Distance(closest.transform.position,(transform.position - new Vector3(1,0,0)));
+	    
+	    if(distanceFromPlayer < grabDistance)
+	    	return closest;
+	    else
+	    	return null;
+	}	
+		
+	public bool isGrabbed() 
+	{
+		return grabbed; 
+	} 
+	
+	[RPC]
+	void grab(bool grabval) 
+	{
+		grabbed = grabval;
+		
+		if (grabbed) {
+			collider.enabled = false;
+		} else {
+		   	collider.enabled = true;
+		}
+	} 
+
+	
+	//
+	//networking portion
+	//
 	
 	public double m_InterpolationBackTime = 0.1;
 	public double m_ExtrapolationLimit = 0.5;
@@ -23,17 +160,7 @@ public class NetworkRigidbody : MonoBehaviour {
 	State[] m_BufferedState = new State[20];
 	// Keep track of what slots are used
 	int m_TimestampCount;
-	
-	public bool isGrabbed() 
-	{
-		return grabbed; 
-	} 
-	[RPC]
-	void grab(bool grabval) 
-	{
-		grabbed = grabval;
-	} 
-	
+		
 	[RPC]
 	void changeOwner(NetworkViewID id) 
 	{
@@ -104,6 +231,10 @@ public class NetworkRigidbody : MonoBehaviour {
 	// By having interpolationBackTime the average ping, you will usually use interpolation.
 	// And only if no more data arrives we will use extra polation
 	void Update () {
+		
+		if (canGrabThings)
+			grabUpdate();
+		
 		// This is the target playback time of the rigid body
 		double interpolationTime = Network.time - m_InterpolationBackTime;
 		
